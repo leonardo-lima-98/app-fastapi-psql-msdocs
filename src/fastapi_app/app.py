@@ -11,7 +11,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.sql import func
 from sqlmodel import Session, select
 
-from .models import Restaurant, Review, engine
+from fastapi_app.models import Restaurant, Review, engine
 
 # Setup logger and Azure Monitor:
 logger = logging.getLogger("app")

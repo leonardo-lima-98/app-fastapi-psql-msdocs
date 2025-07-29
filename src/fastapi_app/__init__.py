@@ -1,1 +1,1 @@
-from .app import app  # noqa
+from fastapi_app.app import app  # noqa
