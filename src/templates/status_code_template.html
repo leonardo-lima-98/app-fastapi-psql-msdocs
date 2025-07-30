@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}"> 
+</head>
+<body>
+    <div class="container">
+        <div class="{{class}}">{{status_code}}</div>
+
+        <p>{{ message }}</p>
+        
+        <a href="{{ url_for('read_root') }}"><button>Home</button></a>
+    </div>
+</body>
+</html>
