@@ -1,14 +1,16 @@
 # src/handlers/errors.py
+import pathlib
 from http import HTTPStatus
 
 from fastapi import Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-templates = Jinja2Templates(directory='templates')
+parent_path = pathlib.Path(__file__).parent.parent.parent
+templates = Jinja2Templates(directory=parent_path / "templates")
 
 async def not_found_handler(
-    request: Request, exc: StarletteHTTPException
+    request: Request, exc: StarletteHTTPException, 
 ):
     status_code = HTTPStatus.NOT_FOUND
     return templates.TemplateResponse(
@@ -50,3 +52,6 @@ async def internal_error_handler(request: Request, exc: Exception):
         },
         status_code=status_code.value,
     )
+
+if __name__ == '__main__':
+    print(parent_path)

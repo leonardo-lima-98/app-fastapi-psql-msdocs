@@ -1,17 +1,19 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>{{title}}</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}"> 
-</head>
-<body>
-    <div class="container">
+{% extends "base.html" %}
+{% block title %}Restaurant Details{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style>
+      body {
+          min-height: 75rem;
+          padding-top: 4.5rem;
+      }
+  </style>
+{% endblock %}
+{% block content %}
         <div class="{{class}}">{{status_code}}</div>
 
         <p>{{ message }}</p>
         
         <a href="{{ url_for('read_root') }}"><button>Home</button></a>
     </div>
-</body>
-</html>
+{% endblock %}

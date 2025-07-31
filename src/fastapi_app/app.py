@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+import time
 from datetime import datetime
 
 from azure.monitor.opentelemetry import configure_azure_monitor
@@ -13,11 +14,7 @@ from sqlmodel import Session, select
 
 from fastapi_app.models import Restaurant, Review, engine
 
-# Setup logger and Azure Monitor:
-logger = logging.getLogger("app")
-logger.setLevel(logging.INFO)
-if os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"):
-    configure_azure_monitor()
+
 
 
 # Setup FastAPI app:
@@ -30,104 +27,39 @@ templates.env.globals["prod"] = os.environ.get("RUNNING_IN_PRODUCTION", False)
 templates.env.globals["url_for"] = app.url_path_for
 
 
+# @app.middleware("http")
+# async def add_process_time_header(request: Request, call_next):
+#     start_time = time.perf_counter()
+#     response = await call_next(request)
+#     process_time = time.perf_counter() - start_time
+#     response.headers["X-Process-Time"] = str(process_time)
+#     return response
+
+
+# @app.middleware("http")
+# async def set_root_path_middleware(request: Request, call_next):
+#     path = request.url.path
+#     base_prefix = path.split("/")[1]  # pega o primeiro segmento após "/"
+#     request.scope["root_path"] = f"/{base_prefix}"
+#     response = await call_next(request)
+#     return response
+
+
 # Dependency to get the database session
 def get_db_session():
     with Session(engine) as session:
         yield session
 
 
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request, session: Session = Depends(get_db_session)):
-    logger.info("root called")
-    statement = (
-        select(Restaurant, func.avg(Review.rating).label("avg_rating"), func.count(Review.id).label("review_count"))
-        .outerjoin(Review, Review.restaurant == Restaurant.id)
-        .group_by(Restaurant.id)
-    )
-    results = session.exec(statement).all()
-
-    restaurants = []
-    for restaurant, avg_rating, review_count in results:
-        restaurant_dict = restaurant.dict()
-        restaurant_dict["avg_rating"] = avg_rating
-        restaurant_dict["review_count"] = review_count
-        restaurant_dict["stars_percent"] = round((float(avg_rating) / 5.0) * 100) if review_count > 0 else 0
-        restaurants.append(restaurant_dict)
-
-    return templates.TemplateResponse("index.html", {"request": request, "restaurants": restaurants})
 
 
-@app.get("/create", response_class=HTMLResponse)
-async def create_restaurant(request: Request):
-    logger.info("Request for add restaurant page received")
-    return templates.TemplateResponse("create_restaurant.html", {"request": request})
-
-
-@app.post("/add", response_class=RedirectResponse)
-async def add_restaurant(
-    request: Request, restaurant_name: str = Form(...), street_address: str = Form(...), description: str = Form(...),
-    session: Session = Depends(get_db_session)
-):
-    logger.info("name: %s address: %s description: %s", restaurant_name, street_address, description)
-    restaurant = Restaurant()
-    restaurant.name = restaurant_name
-    restaurant.street_address = street_address
-    restaurant.description = description
-    session.add(restaurant)
-    session.commit()
-    session.refresh(restaurant)
-
-    return RedirectResponse(url=app.url_path_for("details", id=restaurant.id), status_code=status.HTTP_303_SEE_OTHER)
-
-
-@app.get("/details/{id}", response_class=HTMLResponse)
-async def details(request: Request, id: int, session: Session = Depends(get_db_session)):
-    restaurant = session.exec(select(Restaurant).where(Restaurant.id == id)).first()
-    reviews = session.exec(select(Review).where(Review.restaurant == id)).all()
-
-    review_count = len(reviews)
-
-    avg_rating = 0
-    if review_count > 0:
-        avg_rating = sum(review.rating for review in reviews if review.rating is not None) / review_count
-
-    restaurant_dict = restaurant.dict()
-    restaurant_dict["avg_rating"] = avg_rating
-    restaurant_dict["review_count"] = review_count
-    restaurant_dict["stars_percent"] = round((float(avg_rating) / 5.0) * 100) if review_count > 0 else 0
-
-    return templates.TemplateResponse(
-        "details.html", {"request": request, "restaurant": restaurant_dict, "reviews": reviews}
-    )
-
-
-@app.post("/review/{id}", response_class=RedirectResponse)
-async def add_review(
-    request: Request,
-    id: int,
-    user_name: str = Form(...),
-    rating: str = Form(...),
-    review_text: str = Form(...),
-    session: Session = Depends(get_db_session),
-):
-    review = Review()
-    review.restaurant = id
-    review.review_date = datetime.now()
-    review.user_name = user_name
-    review.rating = int(rating)
-    review.review_text = review_text
-    session.add(review)
-    session.commit()
-
-    return RedirectResponse(url=app.url_path_for("details", id=id), status_code=status.HTTP_303_SEE_OTHER)
-
-
-from fastapi_app.handlers import errors
+from fastapi_app.handlers.errors import not_found_handler
 from fastapi_app.routes.bingo import route as bingo_route
 from fastapi_app.routes.glances import route as glances_route
 from fastapi_app.routes.login import route as login_route
 from fastapi_app.routes.main import route as main_route
 from fastapi_app.routes.users import route as users_route
+from fastapi_app.routes.restaurant import route as restaurant_route
 
 app.include_router(main_route, tags=['Main'])
 
@@ -135,6 +67,7 @@ app.include_router(bingo_route, prefix='/bingo', tags=['Bingo'])
 app.include_router(glances_route, prefix='/glances', tags=['Glances'])
 app.include_router(login_route, prefix='/login', tags=['Login'])
 app.include_router(users_route, prefix='/users', tags=['Users'])
+app.include_router(restaurant_route, prefix='/restaurant', tags=['Restaurant'])
 
 
-app.add_exception_handler(status.HTTP_404_NOT_FOUND, errors.not_found_handler)
+app.add_exception_handler(status.HTTP_404_NOT_FOUND, not_found_handler)

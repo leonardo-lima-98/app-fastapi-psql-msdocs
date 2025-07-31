@@ -1,12 +1,13 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Glances painel</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}"> 
-</head>
-<body style="background: #000 !important;">
-    <!-- painel.html -->
+{% extends "base.html" %}
+{% block title %}Restaurant Details{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style>
+      body {
+          background: #000
+      }
+  </style>
+{% endblock %}
+{% block content %}
     <iframe src='{{ glances_url }}' ></iframe>
-</body>
-</html>
+{% endblock %}

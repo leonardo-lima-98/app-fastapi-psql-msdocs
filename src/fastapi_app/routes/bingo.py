@@ -1,13 +1,14 @@
 from http import HTTPStatus
 import random
+import pathlib
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 route = APIRouter()
-templates = Jinja2Templates(directory='templates')
-
+parent_path = pathlib.Path(__file__).parent.parent.parent
+templates = Jinja2Templates(directory=parent_path / "templates")
 
 numeros_ja_exibidos = []
 

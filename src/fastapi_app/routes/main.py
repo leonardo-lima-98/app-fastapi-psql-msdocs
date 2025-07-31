@@ -1,11 +1,13 @@
 from http import HTTPStatus
+import pathlib
 
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 route = APIRouter()
-templates = Jinja2Templates(directory='templates')
+parent_path = pathlib.Path(__file__).parent.parent.parent
+templates = Jinja2Templates(directory=parent_path / "templates")
 
 # Rotas principais
 @route.get('/', name='read_root')

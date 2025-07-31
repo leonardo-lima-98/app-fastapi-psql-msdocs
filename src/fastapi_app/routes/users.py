@@ -4,7 +4,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 
-from src.schemas import Message, User, UserCreate, UserResponse
+from fastapi_app.schemas import Message, User, UserCreate, UserResponse
 
 route = APIRouter()
 templates = Jinja2Templates(directory='templates')
