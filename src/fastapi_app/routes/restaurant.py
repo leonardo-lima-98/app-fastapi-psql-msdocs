@@ -7,11 +7,10 @@ from azure.monitor.opentelemetry import configure_azure_monitor
 from fastapi import Depends, APIRouter, Form, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.sql import func
-from sqlmodel import Session, select
-
 from fastapi_app.config.database import get_db_session
 from fastapi_app.models import Restaurant, Review
+from sqlalchemy.sql import func
+from sqlmodel import Session, select
 
 
 route = APIRouter()

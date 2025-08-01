@@ -1,9 +1,8 @@
 from http import HTTPStatus
-import pathlib
+import pathlib 
 
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
 route = APIRouter()
 parent_path = pathlib.Path(__file__).parent.parent.parent

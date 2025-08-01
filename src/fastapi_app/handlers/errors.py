@@ -19,7 +19,7 @@ async def not_found_handler(
             'request': request,
             'title': status_code.phrase,
             'message': status_code.description,
-            'class': 'failed',
+            'class': 'danger',
             'status_code': status_code.value,
         },
         status_code=status_code.value,

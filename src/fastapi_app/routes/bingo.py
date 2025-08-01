@@ -25,7 +25,7 @@ def bingo_to_play_with_friends(request: Request, status_code=HTTPStatus.OK):
         'title': "Bingo",
         'message': numeros_ja_exibidos,
         'class': 'success',
-        'status_code': gera_numero_random(),
+        'status_code': 0,
     },
     status_code=status_code.value,
     )

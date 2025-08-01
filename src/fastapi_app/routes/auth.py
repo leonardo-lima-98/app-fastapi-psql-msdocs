@@ -1,4 +1,5 @@
 from http import HTTPStatus
+import pathlib
 from uuid import uuid4
 
 from fastapi import APIRouter, Request, Depends
@@ -6,10 +7,12 @@ from fastapi.templating import Jinja2Templates
 from fastapi.security import OAuth2PasswordRequestForm
 
 from fastapi_app.schemas import User, UserCreate, UserResponse
+from fastapi_app.config.security import verify_token, VALID_TOKEN
+
 
 route = APIRouter()
-templates = Jinja2Templates(directory='templates')
-
+parent_path = pathlib.Path(__file__).parent.parent.parent
+templates = Jinja2Templates(directory=parent_path / "templates")
 
 database = [
     User(
@@ -42,11 +45,13 @@ database = [
     ),
 ]
 
-# Rotas de usuario
-@route.get('/', name='login')
-def login(request: Request, status_code=HTTPStatus.OK):
+    
+# === ROTAS DE EXEMPLO ===
+
+@route.get('/', name='login_to_access_app')
+def login_to_access_app(request: Request, status_code=HTTPStatus.OK):
     return templates.TemplateResponse(
-    'login.html',
+    'status_code_template.html',
     {
         'request': request,
         'title': "Login",
@@ -54,9 +59,8 @@ def login(request: Request, status_code=HTTPStatus.OK):
         # 'password':form_data.password,
         # 'scopes':form_data.scopes
     },
-    status_code=200,
+    status_code=status_code,
     )
-
 
 @route.post('/token', name='token')
 def create_user(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -66,7 +70,6 @@ def create_user(form_data: OAuth2PasswordRequestForm = Depends()):
     else:
         HTTPStatus.UNAUTHORIZED
         
-
 @route.get('/users', response_model=list[UserResponse], status_code=HTTPStatus.OK)
 def get_users():
     return database
@@ -82,4 +85,40 @@ def create_user(user: UserCreate):
     )
     database.append(user)
     return user
-    
+
+# @route.get("/")
+# async def root():
+#     """Rota pública"""
+#     return {"message": "Esta é uma rota pública"}
+
+@route.post("/login")
+async def login():
+    """Simula login retornando token"""
+    return {
+        "access_token": VALID_TOKEN,
+        "token_type": "bearer",
+        "message": "Use este token no header: Authorization: Bearer meu-token-secreto-123"
+    }
+
+@route.get("/protected-middleware")
+async def protected_by_middleware():
+    """Rota protegida pelo middleware"""
+    return {"message": "Acesso autorizado via middleware!"}
+
+@route.get("/protected-dependency")
+async def protected_by_dependency(token: str = Depends(verify_token)):
+    """Rota protegida por dependency"""
+    return {
+        "message": "Acesso autorizado via dependency!",
+        "token_usado": token
+    }
+
+@route.get("/user-info")
+async def get_user_info(token: str = Depends(verify_token)):
+    """Simula retorno de informações do usuário"""
+    return {
+        "user_id": "123",
+        "username": "usuario_teste",
+        "token": token,
+        "timestamp": time.time()
+    }

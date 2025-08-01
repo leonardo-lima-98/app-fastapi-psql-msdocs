@@ -4,10 +4,11 @@
     {{ super() }}
     <style>
       body {
-          background: #000
+        background: #000;
+        padding-top: 4.5rem;
       }
   </style>
 {% endblock %}
 {% block content %}
-    <iframe src='{{ glances_url }}' ></iframe>
+    <iframe class="w-100" style="height: 90vh;" src='{{ glances_url }}' ></iframe>
 {% endblock %}

@@ -1,12 +1,13 @@
 from http import HTTPStatus, client
+import pathlib
 
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 route = APIRouter()
-templates = Jinja2Templates(directory='templates')
-
+parent_path = pathlib.Path(__file__).parent.parent.parent
+templates = Jinja2Templates(directory=parent_path / "templates")
 
 # Rota para o Glances
 def check_server_up(host: str, port: int) -> bool:
@@ -42,7 +43,7 @@ def show_glances(
                 'request': request,
                 'title': status_code.phrase,
                 'message': f'Não foi possível acessar {glances_url}',
-                'class': 'failed',
+                'class': 'danger',
                 'status_code': status_code.value,
             },
             status_code=status_code.value,
